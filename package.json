@@ -1,0 +1,30 @@
+{
+  "name": "trabalhofinal",
+  "version": "1.0.0",
+  "description": "Trabalho PPI",
+  "keywords": [
+    "express",
+    "node",
+    "cookies",
+    "sessao"
+  ],
+  "homepage": "https://github.com/milhoranca21-del/Trabalhofinal#readme",
+  "bugs": {
+    "url": "https://github.com/milhoranca21-del/Trabalhofinal/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/milhoranca21-del/Trabalhofinal.git"
+  },
+  "license": "ISC",
+  "author": "Arthur Ferreira Milhorança",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
