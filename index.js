@@ -465,7 +465,6 @@ app.post('/cadastro_leitor', Autenticado, (req, res) => {
 
                 <form action="/cadastro_leitor" method="POST">
 
-                    <!-- NOME -->
                     <div class="mb-3">
                         <label class="form-label">Nome do Leitor</label>
                         <input type="text" class="form-control" name="nome" value="${nome || ''}">
@@ -476,7 +475,6 @@ app.post('/cadastro_leitor', Autenticado, (req, res) => {
             html += `<div class="alert alert-danger">Por favor informe o nome !!!</div>`;
         }
 
-        // SELECT LIVROS
         html += `
             <div class="mb-3">
                 <label class="form-label">Livro Emprestado</label>
@@ -505,7 +503,6 @@ app.post('/cadastro_leitor', Autenticado, (req, res) => {
             html += `<div class="alert alert-danger">Por favor informe o livro !!!</div>`;
         }
 
-        // DATA
         html += `
             <div class="mb-3">
                 <label class="form-label">Data de Empréstimo</label>
@@ -660,9 +657,8 @@ app.post('/login', (req, res) => {
 
     if(email === 'admin@teste.com.br' && senha === 'admin'){
         req.session.logado = true;
-        res.redirect('/'); // volta para a página inicial da biblioteca
+        res.redirect('/'); 
     } else {
-        // redireciona para login com erro
         res.redirect('/login');
     }
 });
@@ -679,7 +675,7 @@ function Autenticado(req,res,proximo){
 
 app.get("/logout", (requisicao, resposta) => {
     requisicao.session.destroy();
-    resposta.redirect("/");
+    resposta.redirect("/login");
 });
 
 app.listen(porta, host, () => {
