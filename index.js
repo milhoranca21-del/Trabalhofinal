@@ -1,5 +1,7 @@
 import express from 'express';
 
+import session from 'express-session';
+
 const host = '0.0.0.0';
 
 const porta = 3010;
@@ -7,8 +9,21 @@ const porta = 3010;
 const app = express();
 
 var listalivros = [];
+var listaleitores = []
 
 app.use(express.urlencoded({ extended: true }));
+
+app.use(session({
+
+    secret: 'm1nh4ch4ve',
+    resave: true,
+    saveUninitialized: true,
+    cookie:{
+        secure: false,
+        httpOnly: true,
+        maxAge: 1000 * 60 * 15,
+    }
+}));
 
 app.get('/', (req, res) => {
 
@@ -104,9 +119,9 @@ app.get('/', (req, res) => {
                       <p>
                         Consulte os usuários cadastrados, adicione novos leitores e acompanhe o histórico de empréstimos.
                       </p>
-                      <button class="btn btn-outline-light mt-2">
+                     <a href="/cadastro_leitor" class="btn btn-outline-light mt-2">
                         Gerenciar Leitores
-                      </button>
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -226,7 +241,7 @@ app.post('/cadastro_livro', (req, res) => {
 
                     <div class="mb-3">
                         <label class="form-label">Título do Livro</label>
-                        <input type="text" class="form-control" name="titulo" id="titulo "value="${titulo}">
+                        <input type="text" class="form-control" name="titulo" id="titulo"value="${titulo}">
                     </div>
         `;
 
@@ -340,6 +355,331 @@ app.get("/lista_livros", (req, res) => {
     `);
 
     res.end();
+});
+
+app.get('/cadastro_leitor', (req, res) => {
+
+    let html = `
+        <!doctype html>
+        <html lang="pt-br">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Cadastro de Leitor</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+          </head>
+          <body>
+
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+              <div class="container">
+                <a class="navbar-brand fw-bold" href="/">📚 Biblioteca</a>
+              </div>
+            </nav>
+
+            <div class="container my-5">
+              <div class="card shadow-sm">
+                <div class="card-body p-4">
+                  
+                  <h2 class="mb-4">📖 Cadastro de Leitor</h2>
+
+                  <form method="POST" action="/cadastro_leitor">
+
+                    <div class="mb-3">
+                      <label class="form-label">Nome do Leitor</label>
+                      <input type="text" name="nome" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label">Livro Emprestado</label>
+                      <select name="livro" class="form-select">
+                        <option value="">Selecione um livro</option>
+    `;
+
+    
+    for (let i = 0; i < listalivros.length; i++) {
+        html += `
+            <option value="${listalivros[i].titulo}">
+                ${listalivros[i].titulo}
+            </option>
+        `;
+    }
+
+    html += `
+                      </select>
+                    </div>
+
+                    <div class="mb-3">
+                      <label class="form-label">Data de Empréstimo</label>
+                      <input type="date" name="data" class="form-control">
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                      <a href="/" class="btn btn-secondary">Voltar</a>
+                      <button type="submit" class="btn btn-primary">
+                        Salvar Leitor
+                      </button>
+                    </div>
+
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+          </body>
+        </html>
+    `;
+
+    res.write(html);
+    res.end();
+
+});
+
+app.post('/cadastro_leitor', (req, res) => {
+
+    const nome = req.body.nome;
+    const livro = req.body.livro;
+    const data = req.body.data;
+
+    if (!nome || !livro || !data) {
+
+        let html = `
+        <!doctype html>
+        <html lang="pt-br">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Cadastro de Leitor</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+              <div class="container">
+                <a class="navbar-brand fw-bold" href="/">📚 Biblioteca</a>
+              </div>
+            </nav>
+
+            <div class="container mt-5">
+                <h2 class="mb-4">Cadastro de Leitor</h2>
+
+                <form action="/cadastro_leitor" method="POST">
+
+                    <!-- NOME -->
+                    <div class="mb-3">
+                        <label class="form-label">Nome do Leitor</label>
+                        <input type="text" class="form-control" name="nome" value="${nome || ''}">
+                    </div>
+        `;
+
+        if (!nome) {
+            html += `<div class="alert alert-danger">Por favor informe o nome !!!</div>`;
+        }
+
+        // SELECT LIVROS
+        html += `
+            <div class="mb-3">
+                <label class="form-label">Livro Emprestado</label>
+                <select name="livro" class="form-select">
+                    <option value="">Selecione um livro</option>
+        `;
+
+        if (listalivros.length === 0) {
+            html += `<option disabled>Nenhum livro cadastrado</option>`;
+        }
+
+        for (let i = 0; i < listalivros.length; i++) {
+            html += `
+                <option value="${listalivros[i].titulo}" ${livro == listalivros[i].titulo ? 'selected' : ''}>
+                    ${listalivros[i].titulo}
+                </option>
+            `;
+        }
+
+        html += `
+                </select>
+            </div>
+        `;
+
+        if (!livro) {
+            html += `<div class="alert alert-danger">Por favor informe o livro !!!</div>`;
+        }
+
+        // DATA
+        html += `
+            <div class="mb-3">
+                <label class="form-label">Data de Empréstimo</label>
+                <input type="date" class="form-control" name="data" value="${data || ''}">
+            </div>
+        `;
+
+        if (!data) {
+            html += `<div class="alert alert-danger">Por favor informe a data !!!</div>`;
+        }
+
+        html += `
+            <button type="submit" class="btn btn-primary">Cadastrar Leitor</button>
+            </form>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        </body>
+        </html>
+        `;
+
+        res.write(html);
+        res.end();
+
+    } else {
+
+        listaleitores.push({
+            nome: nome,
+            livro: livro,
+            data: data
+        });
+
+        res.redirect("/lista_leitores");
+    }
+
+});
+
+app.get("/lista_leitores", (req, res) => {
+    res.write(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <title>Lista de Leitores</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand fw-bold" href="/">📚 Biblioteca</a>
+            </div>
+        </nav>
+
+        <div class="container my-5">
+            <h2 class="mb-4">Lista de Leitores</h2>
+
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark text-center">
+                    <tr>
+                        <th>Nome</th>
+                        <th>Livro Emprestado</th>
+                        <th>Data de Empréstimo</th>
+                    </tr>
+                </thead>
+                <tbody class="text-center">
+    `);
+
+    for (let i = 0; i < listaleitores.length; i++) {
+        res.write(`
+            <tr>
+                <td>${listaleitores[i].nome}</td>
+                <td>${listaleitores[i].livro}</td>
+                <td>${listaleitores[i].data}</td>
+            </tr>
+        `);
+    }
+
+    res.write(`
+                </tbody>
+            </table>
+
+            <a href="/cadastro_leitor" class="btn btn-primary mt-3">
+                Cadastrar Novo Leitor
+            </a>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    `);
+
+    res.end();
+});
+
+app.get('/login', (req, res) => {
+
+    res.write(`
+
+        <!DOCTYPE html>
+        <html lang="pt-br">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Login</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body>
+
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container">
+                    <a class="navbar-brand fw-bold" href="/">📚 Biblioteca</a>
+                </div>
+            </nav>
+
+            <div class="container my-5">
+                <h2 class="mb-4">Login</h2>
+
+                <form action="/login" method="POST">
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="text" class="form-control" placeholder="Digite o usuário" name="email" id="email">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Senha</label>
+                        <input type="password" class="form-control" placeholder="Digite a senha" name="senha" id="senha">
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Entrar</button>
+                        <a href="/" class="btn btn-secondary">Voltar</a>
+                    </div>
+
+                </form>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        </body>
+        </html>
+
+    `);
+
+    res.end();
+
+});
+
+app.post('/login', (req, res) => {
+    const email = req.body.email;
+    const senha = req.body.senha;
+
+    if(email === 'admin@teste.com.br' && senha === 'admin'){
+        req.session.logado = true;
+        res.redirect('/'); // volta para a página inicial da biblioteca
+    } else {
+        // redireciona para login com erro
+        res.redirect('/login');
+    }
+});
+
+function Autenticado(req,res,next){
+
+    if(req.session?.logado){
+        next();
+
+    }else{
+        res.redirect("/");
+    }
+}
+
+app.get("/logout", (requisicao, resposta) => {
+    requisicao.session.destroy();
+    resposta.redirect("/");
 });
 
 app.listen(porta, host, () => {
