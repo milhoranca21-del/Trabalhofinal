@@ -25,7 +25,7 @@ app.use(session({
     }
 }));
 
-app.get('/', (req, res) => {
+app.get('/', Autenticado, (req, res) => {
 
     res.write(`
         <!doctype html>
@@ -138,7 +138,7 @@ app.get('/', (req, res) => {
 
 });
 
-app.get('/cadastro_livro', (req, res) => {
+app.get('/cadastro_livro', Autenticado, (req, res) => {
 
     res.write(`
         <!doctype html>
@@ -209,7 +209,7 @@ app.get('/cadastro_livro', (req, res) => {
 
 });
 
-app.post('/cadastro_livro', (req, res) => {
+app.post('/cadastro_livro',  Autenticado, (req, res) => {
 
     const titulo = req.body.titulo;
     const autor = req.body.autor;
@@ -296,7 +296,7 @@ app.post('/cadastro_livro', (req, res) => {
 
 });
 
-app.get("/lista_livros", (req, res) => {
+app.get("/lista_livros",  Autenticado, (req, res) => {
     res.write(`
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -357,7 +357,7 @@ app.get("/lista_livros", (req, res) => {
     res.end();
 });
 
-app.get('/cadastro_leitor', (req, res) => {
+app.get('/cadastro_leitor', Autenticado, (req, res) => {
 
     let html = `
         <!doctype html>
@@ -435,7 +435,7 @@ app.get('/cadastro_leitor', (req, res) => {
 
 });
 
-app.post('/cadastro_leitor', (req, res) => {
+app.post('/cadastro_leitor', Autenticado, (req, res) => {
 
     const nome = req.body.nome;
     const livro = req.body.livro;
@@ -543,7 +543,7 @@ app.post('/cadastro_leitor', (req, res) => {
 
 });
 
-app.get("/lista_leitores", (req, res) => {
+app.get("/lista_leitores", Autenticado, (req, res) => {
     res.write(`
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -667,13 +667,13 @@ app.post('/login', (req, res) => {
     }
 });
 
-function Autenticado(req,res,next){
+function Autenticado(req,res,proximo){
 
     if(req.session?.logado){
-        next();
+        proximo();
 
     }else{
-        res.redirect("/");
+        res.redirect("/login");
     }
 }
 
